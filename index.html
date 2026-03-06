@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>초보 전용 서핑 차트 분석기</title>
+    <title>초보 SUP 서핑 차트 분석기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -25,7 +25,7 @@
             gap: 0.75rem;
             padding: 0.5rem 0.25rem 1rem 0.25rem;
             width: 100%;
-            cursor: grab; /* PC에서 잡고 끌 수 있다는 표시 */
+            cursor: grab;
         }
 
         .scroll-container:active {
@@ -35,7 +35,7 @@
         .scroll-item {
             scroll-snap-align: start;
             flex: 0 0 auto;
-            user-select: none; /* 드래그 시 텍스트 선택 방지 */
+            user-select: none;
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -57,10 +57,10 @@
                 MapPin: <><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>,
                 RefreshCw: <><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></>,
                 XCircle: <><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></>,
-                Car: <><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></>,
-                ThumbsUp: <path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />,
-                ThumbsDown: <path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z" />,
-                AlertCircle: <><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></>
+                Sunrise: <><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 22 4-10 4 10"/><path d="M12 18a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></>,
+                Sunset: <><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 22-4-10-4 10"/><path d="M12 18a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></>,
+                Info: <><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></>,
+                Thermometer: <><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></>
             };
 
             return (
@@ -70,7 +70,6 @@
             );
         };
 
-        // PC 드래그 스크롤 커스텀 훅
         const useDraggableScroll = () => {
             const ref = useRef(null);
             const [isDown, setIsDown] = useState(false);
@@ -86,38 +85,26 @@
                     setStartX(e.pageX - el.offsetLeft);
                     setScrollLeft(el.scrollLeft);
                 };
-
                 const handleMouseLeave = () => setIsDown(false);
                 const handleMouseUp = () => setIsDown(false);
-
                 const handleMouseMove = (e) => {
                     if (!isDown) return;
                     e.preventDefault();
                     const x = e.pageX - el.offsetLeft;
-                    const walk = (x - startX) * 2; // 스크롤 속도 조절
+                    const walk = (x - startX) * 2;
                     el.scrollLeft = scrollLeft - walk;
-                };
-
-                // 휠 스크롤을 가로 스크롤로 변환
-                const handleWheel = (e) => {
-                    if (e.deltaY !== 0) {
-                        el.scrollLeft += e.deltaY;
-                        e.preventDefault();
-                    }
                 };
 
                 el.addEventListener('mousedown', handleMouseDown);
                 el.addEventListener('mouseleave', handleMouseLeave);
                 el.addEventListener('mouseup', handleMouseUp);
                 el.addEventListener('mousemove', handleMouseMove);
-                el.addEventListener('wheel', handleWheel, { passive: false });
 
                 return () => {
                     el.removeEventListener('mousedown', handleMouseDown);
                     el.removeEventListener('mouseleave', handleMouseLeave);
                     el.removeEventListener('mouseup', handleMouseUp);
                     el.removeEventListener('mousemove', handleMouseMove);
-                    el.removeEventListener('wheel', handleWheel);
                 };
             }, [isDown, startX, scrollLeft]);
 
@@ -139,50 +126,102 @@
                 for (let i = 0; i < 14; i++) {
                     const d = new Date();
                     d.setDate(d.getDate() + i);
-                    days.push(d.toISOString().split('T')[0]);
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    days.push(`${y}-${m}-${day}`);
                 }
                 return days;
             }, []);
 
             const [selectedSpot, setSelectedSpot] = useState('양양 죽도');
             const [selectedDate, setSelectedDate] = useState(next14Days[0]);
-            const [data, setData] = useState(null);
+            const [data, setData] = useState({ morning: null, afternoon: null });
             const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
 
-            // 스크롤 레퍼런스 적용
             const spotScrollRef = useDraggableScroll();
             const dateScrollRef = useDraggableScroll();
 
             const fetchSurfData = async (spotName, dateStr) => {
                 setLoading(true);
+                setError(null);
                 const spot = spots[spotName];
                 try {
-                    const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lng}&hourly=wave_height,wave_period,wave_direction&timezone=Asia%2FSeoul`;
-                    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lng}&hourly=wind_speed_10m,wind_direction_10m&timezone=Asia%2FSeoul`;
+                    // 수온(water_temperature)을 요청에서 제외하여 데이터 누락으로 인한 오류 방지
+                    const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lng}&hourly=wave_height,wave_period,wave_direction,swell_wave_height&timezone=Asia%2FSeoul&start_date=${dateStr}&end_date=${dateStr}`;
+                    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lng}&hourly=wind_speed_10m,wind_direction_10m&timezone=Asia%2FSeoul&start_date=${dateStr}&end_date=${dateStr}`;
 
                     const [marineRes, weatherRes] = await Promise.all([fetch(marineUrl), fetch(weatherUrl)]);
+                    
+                    if (!marineRes.ok || !weatherRes.ok) {
+                        throw new Error("서버 응답이 원활하지 않습니다.");
+                    }
+
                     const marineJson = await marineRes.json();
                     const weatherJson = await weatherRes.json();
 
-                    const targetTimeStr = `${dateStr}T13:00`;
-                    const timeIdx = marineJson.hourly.time.indexOf(targetTimeStr);
-                    const finalIdx = timeIdx !== -1 ? timeIdx : 0;
+                    if (!marineJson || !marineJson.hourly || !weatherJson || !weatherJson.hourly) {
+                        throw new Error("API 데이터가 존재하지 않는 날짜입니다.");
+                    }
 
-                    const getWindDir = (deg) => {
-                        if (deg >= 225 && deg <= 315) return 'W';
-                        if (deg > 315 || deg < 45) return 'N';
-                        if (deg >= 45 && deg <= 135) return 'E';
-                        return 'S';
+                    const getAvgData = (startHour, endHour) => {
+                        const startTimeStr = `${dateStr}T${String(startHour).padStart(2, '0')}:00`;
+                        const endTimeStr = `${dateStr}T${String(endHour).padStart(2, '0')}:00`;
+                        
+                        const timeArray = marineJson.hourly.time;
+                        if (!timeArray) return null;
+                        
+                        const startIdx = timeArray.findIndex(t => t.startsWith(startTimeStr));
+                        const endIdx = timeArray.findIndex(t => t.startsWith(endTimeStr));
+
+                        if (startIdx === -1 || endIdx === -1) return null;
+
+                        const sliceH = arr => (arr ? arr.slice(startIdx, endIdx + 1) : []);
+                        const avg = arr => {
+                            const validData = (arr || []).filter(v => v !== null && v !== undefined);
+                            if (validData.length === 0) return 0;
+                            const sum = validData.reduce((a, b) => a + b, 0);
+                            return (sum / validData.length).toFixed(1);
+                        };
+                        
+                        const getWindDirLabel = (deg) => {
+                            if (deg >= 225 && deg <= 315) return 'W';
+                            if (deg > 315 || deg < 45) return 'N';
+                            if (deg >= 45 && deg <= 135) return 'E';
+                            return 'S';
+                        };
+
+                        const targetWindDirs = sliceH(weatherJson.hourly.wind_direction_10m);
+                        let mostFrequentWindDir = 'N';
+                        if (targetWindDirs.length > 0) {
+                            const counts = {};
+                            targetWindDirs.forEach(d => {
+                                if (d !== null) {
+                                    const label = getWindDirLabel(d);
+                                    counts[label] = (counts[label] || 0) + 1;
+                                }
+                            });
+                            const keys = Object.keys(counts);
+                            if (keys.length > 0) {
+                                mostFrequentWindDir = keys.reduce((a, b) => counts[a] > counts[b] ? a : b);
+                            }
+                        }
+
+                        return {
+                            waveHeight: parseFloat(avg(sliceH(marineJson.hourly.wave_height))),
+                            period: parseFloat(avg(sliceH(marineJson.hourly.wave_period))),
+                            windDir: mostFrequentWindDir,
+                            windSpeed: parseFloat(avg(sliceH(weatherJson.hourly.wind_speed_10m))),
+                        };
                     };
 
                     setData({
-                        waveHeight: marineJson.hourly.wave_height[finalIdx],
-                        period: marineJson.hourly.wave_period[finalIdx],
-                        windDir: getWindDir(weatherJson.hourly.wind_direction_10m[finalIdx]),
-                        windSpeed: weatherJson.hourly.wind_speed_10m[finalIdx],
+                        morning: getAvgData(6, 11),
+                        afternoon: getAvgData(12, 17)
                     });
                 } catch (err) {
-                    console.error(err);
+                    setError(err.message);
                 } finally {
                     setLoading(false);
                 }
@@ -192,166 +231,192 @@
                 fetchSurfData(selectedSpot, selectedDate);
             }, [selectedSpot, selectedDate]);
 
-            const analyzeConditions = (d) => {
+            const analyzeConditions = (d, timeLabel) => {
                 if (!d) return null;
                 let score = 0;
                 let pros = [];
                 let cons = [];
                 
-                if (d.waveHeight >= 0.4 && d.waveHeight <= 0.9) {
-                    score += 45;
-                    pros.push("파도가 낮고 완만합니다. 테이크오프 연습하기 최고예요!");
-                } else if (d.waveHeight > 1.2) {
-                    cons.push("파도가 높아서 초보에겐 위험할 수 있어요.");
+                if (d.waveHeight >= 0.3 && d.waveHeight <= 0.8) {
+                    score += 50;
+                    pros.push(`${timeLabel} 파도가 낮아 SUP 초보자가 패들링과 균형 잡기에 완벽합니다.`);
+                } else if (d.waveHeight > 1.0) {
+                    cons.push(`${timeLabel} 파도가 다소 높습니다. SUP은 보드가 커서 파도에 밀릴 때 위험할 수 있어요.`);
                 } else if (d.waveHeight < 0.2) {
-                    cons.push("파도가 너무 작아서 연습이 힘들 수도 있어요.");
+                    pros.push("파도가 거의 없지만, 패들링 연습이나 크루징하기에는 평화롭고 좋습니다.");
                 }
 
                 const isOffshore = ['W', 'NW', 'SW'].includes(d.windDir);
-                if (isOffshore) {
+                if (isOffshore && d.windSpeed < 15) {
                     score += 40;
-                    pros.push("오프쇼어 바람이라 파도 모양이 예뻐요!");
-                } else {
-                    cons.push("온쇼어 바람입니다. 파도가 조금 찌그러질 수 있어요.");
+                    pros.push("약한 오프쇼어 바람으로 수면이 잔잔해 보드 위에서 중심 잡기 좋습니다.");
+                } else if (d.windSpeed > 20) {
+                    score -= 30;
+                    cons.push("풍속이 강합니다! SUP은 몸이 바람을 다 받기 때문에 체력 소모가 매우 심할 수 있어요.");
+                } else if (!isOffshore) {
+                    cons.push("온쇼어 바람으로 수면이 칩(Chop)해질 수 있어 밸런스 잡기가 까다롭습니다.");
                 }
 
-                if (d.period >= 6) {
-                    score += 15;
-                    pros.push("파도 힘이 좋아서 보드가 잘 밀려요.");
+                if (d.period >= 7) {
+                    score += 10;
+                    pros.push("파도 주기가 길어 여유 있게 테이크오프 시도를 할 수 있습니다.");
                 }
 
-                let travelAdvice = "";
-                let travelColor = "";
-                let travelIcon = null;
+                let travelAdvice = score >= 80 ? "SUP 하기 최고의 날" : score >= 50 ? "무난한 연습 조건" : "SUP 초보 비추천";
+                let color = score >= 80 ? "text-emerald-600" : score >= 50 ? "text-blue-600" : "text-amber-600";
+                let bg = score >= 80 ? "bg-emerald-50" : score >= 50 ? "bg-blue-50" : "bg-amber-50";
+                let border = score >= 80 ? "border-emerald-200" : score >= 50 ? "border-blue-200" : "border-amber-200";
 
-                if (score >= 85) {
-                    travelAdvice = "지금 당장 양양으로 쏘세요!";
-                    travelColor = "bg-green-600";
-                    travelIcon = "ThumbsUp";
-                } else if (score >= 60) {
-                    travelAdvice = "연습하러 가기 좋습니다.";
-                    travelColor = "bg-blue-600";
-                    travelIcon = "Car";
-                } else if (score >= 40) {
-                    travelAdvice = "초보에겐 조금 힘든 바다";
-                    travelColor = "bg-red-500";
-                    travelIcon = "AlertCircle";
-                } else {
-                    travelAdvice = "집에서 서핑 유튜브 보며 쉬기";
-                    travelColor = "bg-gray-600";
-                    travelIcon = "ThumbsDown";
-                }
-
-                let status = score >= 80 ? "서핑 강추!" : score >= 50 ? "연습 가능" : "초보 비추천";
-                let color = score >= 80 ? "text-green-600" : score >= 50 ? "text-blue-600" : "text-red-500";
-                let bg = score >= 80 ? "bg-green-50" : score >= 50 ? "bg-blue-50" : "bg-red-50";
-
-                return { status, pros, cons, color, bg, travelAdvice, travelColor, travelIcon, score };
+                return { pros, cons, color, bg, border, travelAdvice, score };
             };
 
-            const analysis = analyzeConditions(data);
-
             return (
-                <div className="min-h-screen p-4 md:p-8 font-sans pb-20">
-                    <div className="max-w-xl mx-auto space-y-6">
-                        <header className="flex justify-between items-center mb-4">
+                <div className="min-h-screen p-4 md:p-8 font-sans pb-20 bg-slate-50">
+                    <div className="max-w-2xl mx-auto space-y-6">
+                        <header className="flex justify-between items-center">
                             <div>
                                 <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                                    <Icon name="Waves" className="text-blue-600" /> 서프-헬퍼
+                                    <Icon name="Waves" className="text-blue-600" /> SUP 서프-헬퍼
                                 </h1>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic leading-none">SEOUL SURFER GUIDE</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">SUP BEGINNER AM/PM GUIDE</p>
                             </div>
                             <button onClick={() => fetchSurfData(selectedSpot, selectedDate)} className="p-2 bg-white rounded-full shadow-sm border active:scale-95 transition-transform">
                                 <Icon name="RefreshCw" className={`text-slate-400 ${loading ? 'animate-spin' : ''}`} />
                             </button>
                         </header>
 
-                        {/* 지역 선택 */}
-                        <div className="w-full overflow-hidden">
-                            <div ref={spotScrollRef} className="scroll-container no-scrollbar">
-                                {Object.keys(spots).map(spot => (
-                                    <div key={spot} className="scroll-item">
-                                        <button 
-                                            onClick={() => setSelectedSpot(spot)} 
-                                            className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all border-2 whitespace-nowrap ${selectedSpot === spot ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
-                                        >
-                                            {spot}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        
-                        {/* 날짜 선택 */}
-                        <div className="w-full overflow-hidden">
-                            <div ref={dateScrollRef} className="scroll-container no-scrollbar">
-                                {next14Days.map((date, i) => {
-                                    const d = new Date(date);
-                                    const dayName = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
-                                    return (
-                                        <div key={date} className="scroll-item">
+                        {/* 지역 및 날짜 선택 */}
+                        <div className="space-y-4">
+                            <div className="w-full overflow-hidden">
+                                <div ref={spotScrollRef} className="scroll-container no-scrollbar">
+                                    {Object.keys(spots).map(spot => (
+                                        <div key={spot} className="scroll-item">
                                             <button 
-                                                onClick={() => setSelectedDate(date)} 
-                                                className={`flex flex-col items-center min-w-[75px] py-4 rounded-[2rem] transition-all border-2 ${selectedDate === date ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-100 text-gray-400 shadow-sm hover:border-slate-300'}`}
+                                                onClick={() => setSelectedSpot(spot)} 
+                                                className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all border-2 whitespace-nowrap ${selectedSpot === spot ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
                                             >
-                                                <span className="text-[10px] font-bold opacity-60 uppercase mb-1">{date.split('-')[1]}/{date.split('-')[2]}</span>
-                                                <span className="text-xl font-black">{date.split('-')[2]}</span>
-                                                <span className="text-[10px] font-bold">({dayName})</span>
+                                                {spot}
                                             </button>
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
                             </div>
-                            <p className="text-center text-[11px] text-slate-400 font-bold mt-2 animate-pulse tracking-tighter">
-                                {window.innerWidth > 768 ? '마우스로 끌거나 휠을 돌려보세요' : '옆으로 밀어서 14일치 확인하기'}
-                            </p>
+                            
+                            <div className="w-full overflow-hidden">
+                                <div ref={dateScrollRef} className="scroll-container no-scrollbar">
+                                    {next14Days.map((date) => {
+                                        const d = new Date(date);
+                                        const dayName = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+                                        const displayDate = date.split('-');
+                                        return (
+                                            <div key={date} className="scroll-item">
+                                                <button 
+                                                    onClick={() => setSelectedDate(date)} 
+                                                    className={`flex flex-col items-center min-w-[75px] py-4 rounded-[2rem] transition-all border-2 ${selectedDate === date ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-100 text-gray-400 shadow-sm hover:border-slate-300'}`}
+                                                >
+                                                    <span className="text-[10px] font-bold opacity-60 mb-1">{displayDate[1]}/{displayDate[2]}</span>
+                                                    <span className="text-xl font-black">{displayDate[2]}</span>
+                                                    <span className="text-[10px] font-bold">({dayName})</span>
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
 
                         {loading ? (
-                            <div className="h-64 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
+                            <div className="h-96 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
                                 <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                                <p className="text-slate-400 font-bold text-sm">데이터 분석 중...</p>
+                                <p className="text-slate-400 font-bold text-sm italic tracking-widest uppercase">데이터 분석 중...</p>
+                            </div>
+                        ) : error ? (
+                             <div className="h-64 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-slate-200 text-center p-6">
+                                <Icon name="XCircle" className="text-red-400 mb-3" size={40} />
+                                <p className="text-slate-600 font-bold px-4">{error}</p>
+                                <button onClick={() => fetchSurfData(selectedSpot, selectedDate)} className="mt-4 text-blue-600 font-bold text-sm underline">다시 시도하기</button>
                             </div>
                         ) : (
-                            <div className="space-y-5 animate-in fade-in zoom-in duration-300">
-                                <div className={`${analysis.bg} p-8 rounded-[3.5rem] border-4 ${analysis.color.replace('text', 'border')} shadow-xl relative overflow-hidden`}>
-                                    <div className="text-center relative z-10">
-                                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/80 backdrop-blur rounded-full text-[11px] font-black text-slate-500 mb-6 shadow-sm border border-slate-100">
-                                            <Icon name="MapPin" size={12} className="text-red-500" /> {selectedSpot} · {selectedDate.split('-')[1]}/{selectedDate.split('-')[2]}
-                                        </div>
-                                        <h2 className={`text-4xl font-black mb-2 ${analysis.color} leading-tight`}>{analysis.travelAdvice}</h2>
-                                        <p className="text-slate-400 text-sm font-bold mb-8 italic">Surf Condition Analysis</p>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-3 mb-8">
-                                        {[
-                                            { icon: 'Waves', label: '파고', val: `${data.waveHeight}m`, color: 'text-blue-500' },
-                                            { icon: 'Wind', label: '풍향', val: data.windDir, color: 'text-slate-600' },
-                                            { icon: 'Navigation', label: '주기', val: `${data.period}s`, color: 'text-orange-500' }
-                                        ].map((item, i) => (
-                                            <div key={i} className="bg-white p-5 rounded-[2.2rem] text-center shadow-sm border border-slate-50">
-                                                <Icon name={item.icon} className={`mx-auto mb-2 ${item.color}`} size={24} />
-                                                <span className="block text-[10px] font-bold text-slate-400 mb-1">{item.label}</span>
-                                                <span className="text-lg font-black text-slate-800 tracking-tighter">{item.val}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {analysis.pros.map((msg, i) => (
-                                            <div key={i} className="flex items-center gap-3 bg-white/70 backdrop-blur p-4 rounded-2xl text-[11px] font-bold text-slate-700 border border-green-100 shadow-sm leading-snug">
-                                                <Icon name="CheckCircle2" className="text-green-500 shrink-0" size={18} /> {msg}
-                                            </div>
-                                        ))}
-                                        {analysis.cons.map((msg, i) => (
-                                            <div key={i} className="flex items-center gap-3 bg-white/70 backdrop-blur p-4 rounded-2xl text-[11px] font-bold text-slate-700 border border-red-100 shadow-sm leading-snug">
-                                                <Icon name="XCircle" className="text-red-400 shrink-0" size={18} /> {msg}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <SessionCard 
+                                    title="오전 SUP 세션" 
+                                    time="06:00 - 12:00" 
+                                    icon="Sunrise" 
+                                    data={data.morning} 
+                                    analysis={analyzeConditions(data.morning, "오전")} 
+                                />
+                                <SessionCard 
+                                    title="오후 SUP 세션" 
+                                    time="12:00 - 18:00" 
+                                    icon="Sunset" 
+                                    data={data.afternoon} 
+                                    analysis={analyzeConditions(data.afternoon, "오후")} 
+                                />
                             </div>
                         )}
+                        <p className="text-center text-[10px] text-slate-400 font-bold opacity-70 italic tracking-tight uppercase">Data powered by Open-Meteo Marine API</p>
+                    </div>
+                </div>
+            );
+        };
+
+            const SessionCard = ({ title, time, icon, data, analysis }) => {
+            if (!data || !analysis) {
+                return (
+                    <div className="flex flex-col items-center justify-center h-full min-h-[300px] bg-white rounded-[2.5rem] border-2 border-slate-100 p-8 text-center">
+                        <Icon name="Info" className="text-slate-300 mb-2" size={32} />
+                        <p className="text-slate-400 font-bold text-xs uppercase tracking-tight leading-relaxed">해당 시간대의<br/>데이터가 충분하지 않습니다.</p>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className={`flex flex-col h-full bg-white rounded-[2.5rem] border-2 ${analysis.border} overflow-hidden shadow-sm hover:shadow-md transition-shadow`}>
+                    <div className={`${analysis.bg} p-6 border-b ${analysis.border}`}>
+                        <div className="flex justify-between items-start mb-4">
+                            <div className={`p-3 rounded-2xl bg-white shadow-sm ${analysis.color}`}>
+                                <Icon name={icon} size={24} />
+                            </div>
+                            <div className="text-right">
+                                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-tighter mb-1">{time}</span>
+                                <span className={`text-xl font-black ${analysis.color}`}>{analysis.travelAdvice}</span>
+                            </div>
+                        </div>
+                        <h3 className="text-lg font-black text-slate-800 mb-4">{title}</h3>
+                        
+                        <div className="flex justify-between mt-2 px-1">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">파고</span>
+                                <span className="text-md font-black text-slate-800">{data.waveHeight}m</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">풍향</span>
+                                <span className="text-md font-black text-slate-800">{data.windDir}</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">풍속</span>
+                                <span className="text-md font-black text-slate-800">{data.windSpeed}km</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">주기</span>
+                                <span className="text-md font-black text-slate-800">{data.period}s</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="p-6 flex-grow space-y-3 bg-white">
+                        {analysis.pros.map((msg, i) => (
+                            <div key={i} className="flex gap-2 text-[11px] font-bold text-slate-600 leading-snug">
+                                <Icon name="CheckCircle2" size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                                <span>{msg}</span>
+                            </div>
+                        ))}
+                        {analysis.cons.map((msg, i) => (
+                            <div key={i} className="flex gap-2 text-[11px] font-bold text-slate-500 leading-snug opacity-70">
+                                <Icon name="XCircle" size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                                <span>{msg}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             );
