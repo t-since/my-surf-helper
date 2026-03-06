@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>초보 SUP 서핑 차트 분석기</title>
+    <title>초보 서퍼용 차트 분석기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -192,7 +192,6 @@
                             mostFrequentWindDir = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
                         }
 
-                        // 풍속 변환: km/h -> m/s (1 km/h = 1/3.6 m/s)
                         const rawWindSpeed = parseFloat(avg(sliceH(weatherJson.hourly.wind_speed_10m)));
                         const windSpeedMs = (rawWindSpeed / 3.6).toFixed(1);
 
@@ -225,37 +224,46 @@
                 let pros = [];
                 let cons = [];
                 
-                // 파고 분석 (초보 SUP 기준)
-                if (d.waveHeight >= 0.2 && d.waveHeight <= 0.6) {
+                // 서핑 전용 파고 분석
+                if (d.waveHeight >= 0.4 && d.waveHeight <= 1.0) {
                     score += 50;
-                    pros.push(`${timeLabel} 파고가 낮아 SUP 입문에 완벽한 장판입니다.`);
-                } else if (d.waveHeight > 0.8) {
-                    score -= 20;
-                    cons.push(`${timeLabel} 파도가 높아 보드 위에서 중심 잡기가 어렵고 체력 소모가 큽니다.`);
-                } else {
-                    pros.push("파도가 거의 없어 고요한 패들링 크루징이 가능합니다.");
+                    pros.push(`${timeLabel} 파고가 적당하여 초보자 거품 파도 연습에 최적입니다.`);
+                } else if (d.waveHeight > 1.2) {
+                    score -= 10;
+                    cons.push("파도가 다소 높아 라인업(바다 멀리) 나가기가 힘들 수 있습니다.");
+                } else if (d.waveHeight < 0.3) {
+                    score -= 40;
+                    cons.push("파도가 너무 낮아 서핑 보드를 밀어주기 힘든 '장판' 상태입니다.");
                 }
 
-                // 풍속 분석 (m/s 기준)
-                // 5m/s 이상: 초보자 힘듦, 8m/s 이상: 위험
-                if (d.windSpeed <= 3.0) {
-                    score += 40;
-                    pros.push("바람이 매우 잔잔하여 방향 전환과 패들링이 수월합니다.");
-                } else if (d.windSpeed >= 6.0) {
-                    score -= 30;
-                    cons.push("풍속이 강해 패들링으로 나아가기 힘들 수 있습니다. 안전에 유의하세요.");
+                // 파도 주기(Period) 분석 - 서핑에서 매우 중요
+                if (d.period >= 7) {
+                    score += 20;
+                    pros.push("파도 주기가 길어 파도의 힘이 좋고 정돈된 느낌입니다.");
+                } else if (d.period <= 4) {
+                    score -= 10;
+                    cons.push("주기가 짧아 파도가 힘없이 부서지거나 정신없이 밀려올 수 있습니다.");
                 }
 
+                // 풍속 및 풍향 분석
                 const isOffshore = d.windDir === '서풍';
-                if (isOffshore && d.windSpeed < 4.0) {
-                    score += 10;
-                    pros.push("약한 오프쇼어(육풍)로 인해 수면이 매끄럽게 정리됩니다.");
+                if (isOffshore && d.windSpeed < 5.0) {
+                    score += 30;
+                    pros.push("오프쇼어(육풍)가 불어 파도면이 깨끗하게 유지됩니다.");
+                } else if (!isOffshore && d.windSpeed > 4.0) {
+                    score -= 20;
+                    cons.push("온쇼어(해풍)가 강해 파도면이 짓눌리고 지저분할 수 있습니다.");
                 }
 
-                let travelAdvice = score >= 80 ? "SUP 하기 최고의 날" : score >= 50 ? "무난한 연습 조건" : "SUP 초보 비추천";
-                let color = score >= 80 ? "text-emerald-600" : score >= 50 ? "text-blue-600" : "text-amber-600";
-                let bg = score >= 80 ? "bg-emerald-50" : score >= 50 ? "bg-blue-50" : "bg-amber-50";
-                let border = score >= 80 ? "border-emerald-200" : score >= 50 ? "border-blue-200" : "border-amber-200";
+                if (d.windSpeed >= 7.0) {
+                    score -= 20;
+                    cons.push("풍속이 너무 강해 패들링과 중심 잡기가 매우 어렵습니다.");
+                }
+
+                let travelAdvice = score >= 80 ? "서핑하기 최고의 날" : score >= 50 ? "연습하기 좋은 날" : "서핑 초보 비추천";
+                let color = score >= 80 ? "text-blue-600" : score >= 50 ? "text-emerald-600" : "text-rose-600";
+                let bg = score >= 80 ? "bg-blue-50" : score >= 50 ? "bg-emerald-50" : "bg-rose-50";
+                let border = score >= 80 ? "border-blue-200" : score >= 50 ? "border-emerald-200" : "border-rose-200";
 
                 return { pros, cons, color, bg, border, travelAdvice, score };
             };
@@ -266,9 +274,9 @@
                         <header className="flex justify-between items-center">
                             <div>
                                 <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                                    <Icon name="Waves" className="text-blue-600" /> SUP 서프-헬퍼
+                                    <Icon name="Waves" className="text-blue-600" /> 서핑 서프-헬퍼
                                 </h1>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">SUP BEGINNER AM/PM GUIDE (m/s)</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none underline decoration-blue-400 decoration-2">FOR SURFERS ONLY (NOT SUP)</p>
                             </div>
                             <button onClick={() => fetchSurfData(selectedSpot, selectedDate)} className="p-2 bg-white rounded-full shadow-sm border active:scale-95 transition-transform">
                                 <Icon name="RefreshCw" className={`text-slate-400 ${loading ? 'animate-spin' : ''}`} />
@@ -282,7 +290,7 @@
                                         <div key={spot} className="scroll-item">
                                             <button 
                                                 onClick={() => setSelectedSpot(spot)} 
-                                                className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all border-2 whitespace-nowrap ${selectedSpot === spot ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
+                                                className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all border-2 whitespace-nowrap ${selectedSpot === spot ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
                                             >
                                                 {spot}
                                             </button>
@@ -317,7 +325,7 @@
                         {loading ? (
                             <div className="h-96 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
                                 <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                                <p className="text-slate-400 font-bold text-sm italic tracking-widest uppercase">데이터 분석 중...</p>
+                                <p className="text-slate-400 font-bold text-sm italic tracking-widest uppercase">서핑 차트 분석 중...</p>
                             </div>
                         ) : error ? (
                              <div className="h-64 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-slate-200 text-center p-6">
@@ -327,14 +335,14 @@
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <SessionCard 
-                                    title="오전 SUP 세션" 
+                                    title="오전 서핑 세션" 
                                     time="06:00 - 12:00" 
                                     icon="Sunrise" 
                                     data={data.morning} 
                                     analysis={analyzeConditions(data.morning, "오전")} 
                                 />
                                 <SessionCard 
-                                    title="오후 SUP 세션" 
+                                    title="오후 서핑 세션" 
                                     time="12:00 - 18:00" 
                                     icon="Sunset" 
                                     data={data.afternoon} 
@@ -352,7 +360,7 @@
                 return (
                     <div className="flex flex-col items-center justify-center h-full min-h-[300px] bg-white rounded-[2.5rem] border-2 border-slate-100 p-8 text-center">
                         <Icon name="Info" className="text-slate-300 mb-2" size={32} />
-                        <p className="text-slate-400 font-bold text-xs uppercase tracking-tight leading-relaxed">데이터가<br/>없습니다.</p>
+                        <p className="text-slate-400 font-bold text-xs uppercase tracking-tight leading-relaxed text-center">파도 데이터가<br/>없거나 휴무입니다.</p>
                     </div>
                 );
             }
@@ -377,16 +385,16 @@
                                 <span className="text-md font-black text-slate-800">{data.waveHeight}m</span>
                             </div>
                             <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">주기</span>
+                                <span className="text-md font-black text-slate-800">{data.period}s</span>
+                            </div>
+                            <div className="flex flex-col">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase">풍향</span>
                                 <span className="text-md font-black text-slate-800">{data.windDir}</span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase">풍속</span>
                                 <span className="text-md font-black text-slate-800">{data.windSpeed}m/s</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">주기</span>
-                                <span className="text-md font-black text-slate-800">{data.period}s</span>
                             </div>
                         </div>
                     </div>
@@ -400,7 +408,7 @@
                         ))}
                         {analysis.cons.map((msg, i) => (
                             <div key={i} className="flex gap-2 text-[11px] font-bold text-slate-500 leading-snug opacity-70">
-                                <Icon name="XCircle" size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                                <Icon name="XCircle" size={14} className="text-rose-400 shrink-0 mt-0.5" />
                                 <span>{msg}</span>
                             </div>
                         ))}
