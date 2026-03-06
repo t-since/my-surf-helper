@@ -52,15 +52,12 @@
             const icons = {
                 Waves: <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />,
                 Wind: <path d="M17.7 7.7A2.5 2.5 0 1 1 20 12H2M12.6 19.7A2.5 2.5 0 1 1 14 15H2M7.9 4.3A2.5 2.5 0 1 1 9 8H2" />,
-                Navigation: <polygon points="3 11 22 2 13 21 11 13 3 11" />,
                 CheckCircle2: <><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></>,
-                MapPin: <><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>,
                 RefreshCw: <><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></>,
                 XCircle: <><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></>,
                 Sunrise: <><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 22 4-10 4 10"/><path d="M12 18a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></>,
                 Sunset: <><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 22-4-10-4 10"/><path d="M12 18a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></>,
-                Info: <><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></>,
-                Thermometer: <><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></>
+                Info: <><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></>
             };
 
             return (
@@ -148,7 +145,6 @@
                 setError(null);
                 const spot = spots[spotName];
                 try {
-                    // 수온(water_temperature)을 요청에서 제외하여 데이터 누락으로 인한 오류 방지
                     const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lng}&hourly=wave_height,wave_period,wave_direction,swell_wave_height&timezone=Asia%2FSeoul&start_date=${dateStr}&end_date=${dateStr}`;
                     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lng}&hourly=wind_speed_10m,wind_direction_10m&timezone=Asia%2FSeoul&start_date=${dateStr}&end_date=${dateStr}`;
 
@@ -161,23 +157,14 @@
                     const marineJson = await marineRes.json();
                     const weatherJson = await weatherRes.json();
 
-                    if (!marineJson || !marineJson.hourly || !weatherJson || !weatherJson.hourly) {
-                        throw new Error("API 데이터가 존재하지 않는 날짜입니다.");
-                    }
-
                     const getAvgData = (startHour, endHour) => {
                         const startTimeStr = `${dateStr}T${String(startHour).padStart(2, '0')}:00`;
-                        const endTimeStr = `${dateStr}T${String(endHour).padStart(2, '0')}:00`;
-                        
-                        const timeArray = marineJson.hourly.time;
-                        if (!timeArray) return null;
-                        
+                        const timeArray = marineJson.hourly?.time || [];
                         const startIdx = timeArray.findIndex(t => t.startsWith(startTimeStr));
-                        const endIdx = timeArray.findIndex(t => t.startsWith(endTimeStr));
+                        
+                        if (startIdx === -1) return null;
 
-                        if (startIdx === -1 || endIdx === -1) return null;
-
-                        const sliceH = arr => (arr ? arr.slice(startIdx, endIdx + 1) : []);
+                        const sliceH = arr => (arr ? arr.slice(startIdx, startIdx + 6) : []);
                         const avg = arr => {
                             const validData = (arr || []).filter(v => v !== null && v !== undefined);
                             if (validData.length === 0) return 0;
@@ -186,14 +173,14 @@
                         };
                         
                         const getWindDirLabel = (deg) => {
-                            if (deg >= 225 && deg <= 315) return 'W';
-                            if (deg > 315 || deg < 45) return 'N';
-                            if (deg >= 45 && deg <= 135) return 'E';
-                            return 'S';
+                            if (deg >= 225 && deg <= 315) return '서풍';
+                            if (deg > 315 || deg < 45) return '북풍';
+                            if (deg >= 45 && deg <= 135) return '동풍';
+                            return '남풍';
                         };
 
                         const targetWindDirs = sliceH(weatherJson.hourly.wind_direction_10m);
-                        let mostFrequentWindDir = 'N';
+                        let mostFrequentWindDir = '북풍';
                         if (targetWindDirs.length > 0) {
                             const counts = {};
                             targetWindDirs.forEach(d => {
@@ -202,17 +189,18 @@
                                     counts[label] = (counts[label] || 0) + 1;
                                 }
                             });
-                            const keys = Object.keys(counts);
-                            if (keys.length > 0) {
-                                mostFrequentWindDir = keys.reduce((a, b) => counts[a] > counts[b] ? a : b);
-                            }
+                            mostFrequentWindDir = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
                         }
+
+                        // 풍속 변환: km/h -> m/s (1 km/h = 1/3.6 m/s)
+                        const rawWindSpeed = parseFloat(avg(sliceH(weatherJson.hourly.wind_speed_10m)));
+                        const windSpeedMs = (rawWindSpeed / 3.6).toFixed(1);
 
                         return {
                             waveHeight: parseFloat(avg(sliceH(marineJson.hourly.wave_height))),
                             period: parseFloat(avg(sliceH(marineJson.hourly.wave_period))),
                             windDir: mostFrequentWindDir,
-                            windSpeed: parseFloat(avg(sliceH(weatherJson.hourly.wind_speed_10m))),
+                            windSpeed: parseFloat(windSpeedMs),
                         };
                     };
 
@@ -221,7 +209,7 @@
                         afternoon: getAvgData(12, 17)
                     });
                 } catch (err) {
-                    setError(err.message);
+                    setError("데이터를 불러오지 못했습니다.");
                 } finally {
                     setLoading(false);
                 }
@@ -237,29 +225,31 @@
                 let pros = [];
                 let cons = [];
                 
-                if (d.waveHeight >= 0.3 && d.waveHeight <= 0.8) {
+                // 파고 분석 (초보 SUP 기준)
+                if (d.waveHeight >= 0.2 && d.waveHeight <= 0.6) {
                     score += 50;
-                    pros.push(`${timeLabel} 파도가 낮아 SUP 초보자가 패들링과 균형 잡기에 완벽합니다.`);
-                } else if (d.waveHeight > 1.0) {
-                    cons.push(`${timeLabel} 파도가 다소 높습니다. SUP은 보드가 커서 파도에 밀릴 때 위험할 수 있어요.`);
-                } else if (d.waveHeight < 0.2) {
-                    pros.push("파도가 거의 없지만, 패들링 연습이나 크루징하기에는 평화롭고 좋습니다.");
+                    pros.push(`${timeLabel} 파고가 낮아 SUP 입문에 완벽한 장판입니다.`);
+                } else if (d.waveHeight > 0.8) {
+                    score -= 20;
+                    cons.push(`${timeLabel} 파도가 높아 보드 위에서 중심 잡기가 어렵고 체력 소모가 큽니다.`);
+                } else {
+                    pros.push("파도가 거의 없어 고요한 패들링 크루징이 가능합니다.");
                 }
 
-                const isOffshore = ['W', 'NW', 'SW'].includes(d.windDir);
-                if (isOffshore && d.windSpeed < 15) {
+                // 풍속 분석 (m/s 기준)
+                // 5m/s 이상: 초보자 힘듦, 8m/s 이상: 위험
+                if (d.windSpeed <= 3.0) {
                     score += 40;
-                    pros.push("약한 오프쇼어 바람으로 수면이 잔잔해 보드 위에서 중심 잡기 좋습니다.");
-                } else if (d.windSpeed > 20) {
+                    pros.push("바람이 매우 잔잔하여 방향 전환과 패들링이 수월합니다.");
+                } else if (d.windSpeed >= 6.0) {
                     score -= 30;
-                    cons.push("풍속이 강합니다! SUP은 몸이 바람을 다 받기 때문에 체력 소모가 매우 심할 수 있어요.");
-                } else if (!isOffshore) {
-                    cons.push("온쇼어 바람으로 수면이 칩(Chop)해질 수 있어 밸런스 잡기가 까다롭습니다.");
+                    cons.push("풍속이 강해 패들링으로 나아가기 힘들 수 있습니다. 안전에 유의하세요.");
                 }
 
-                if (d.period >= 7) {
+                const isOffshore = d.windDir === '서풍';
+                if (isOffshore && d.windSpeed < 4.0) {
                     score += 10;
-                    pros.push("파도 주기가 길어 여유 있게 테이크오프 시도를 할 수 있습니다.");
+                    pros.push("약한 오프쇼어(육풍)로 인해 수면이 매끄럽게 정리됩니다.");
                 }
 
                 let travelAdvice = score >= 80 ? "SUP 하기 최고의 날" : score >= 50 ? "무난한 연습 조건" : "SUP 초보 비추천";
@@ -278,14 +268,13 @@
                                 <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
                                     <Icon name="Waves" className="text-blue-600" /> SUP 서프-헬퍼
                                 </h1>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">SUP BEGINNER AM/PM GUIDE</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">SUP BEGINNER AM/PM GUIDE (m/s)</p>
                             </div>
                             <button onClick={() => fetchSurfData(selectedSpot, selectedDate)} className="p-2 bg-white rounded-full shadow-sm border active:scale-95 transition-transform">
                                 <Icon name="RefreshCw" className={`text-slate-400 ${loading ? 'animate-spin' : ''}`} />
                             </button>
                         </header>
 
-                        {/* 지역 및 날짜 선택 */}
                         <div className="space-y-4">
                             <div className="w-full overflow-hidden">
                                 <div ref={spotScrollRef} className="scroll-container no-scrollbar">
@@ -334,7 +323,6 @@
                              <div className="h-64 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-slate-200 text-center p-6">
                                 <Icon name="XCircle" className="text-red-400 mb-3" size={40} />
                                 <p className="text-slate-600 font-bold px-4">{error}</p>
-                                <button onClick={() => fetchSurfData(selectedSpot, selectedDate)} className="mt-4 text-blue-600 font-bold text-sm underline">다시 시도하기</button>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -354,18 +342,17 @@
                                 />
                             </div>
                         )}
-                        <p className="text-center text-[10px] text-slate-400 font-bold opacity-70 italic tracking-tight uppercase">Data powered by Open-Meteo Marine API</p>
                     </div>
                 </div>
             );
         };
 
-            const SessionCard = ({ title, time, icon, data, analysis }) => {
+        const SessionCard = ({ title, time, icon, data, analysis }) => {
             if (!data || !analysis) {
                 return (
                     <div className="flex flex-col items-center justify-center h-full min-h-[300px] bg-white rounded-[2.5rem] border-2 border-slate-100 p-8 text-center">
                         <Icon name="Info" className="text-slate-300 mb-2" size={32} />
-                        <p className="text-slate-400 font-bold text-xs uppercase tracking-tight leading-relaxed">해당 시간대의<br/>데이터가 충분하지 않습니다.</p>
+                        <p className="text-slate-400 font-bold text-xs uppercase tracking-tight leading-relaxed">데이터가<br/>없습니다.</p>
                     </div>
                 );
             }
@@ -395,7 +382,7 @@
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase">풍속</span>
-                                <span className="text-md font-black text-slate-800">{data.windSpeed}km</span>
+                                <span className="text-md font-black text-slate-800">{data.windSpeed}m/s</span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase">주기</span>
